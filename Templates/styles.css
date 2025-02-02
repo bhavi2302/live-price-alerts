@@ -1,0 +1,26 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+th {
+    background-color: #f2f2f2;
+}
+#stock-data {
+    margin-top: 20px;
+}
+/* Updated CSS using forced-colors */
+@media (forced-colors: active) {
+    body {
+        background-color: black;
+        color: rgb(12, 12, 12);
+    }
+}

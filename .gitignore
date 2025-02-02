@@ -1,0 +1,17 @@
+# Temporary files
+~$*.xlsx
+
+# Virtual environment
+myenv/
+
+# Logs
+logs/
+
+# VS Code settings
+.vscode/
+
+# Python cache
+__pycache__/
+
+# Ignore environment variables file
+.env

@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import pyotp
 import xlwings as xw
@@ -16,11 +17,11 @@ df = sht.range('A1').options(pd.DataFrame, header=1, index=False, expand='table'
 print("DataFrame Columns:", df.columns.tolist())
 print("Sample Tokens:", df['token'].head().tolist())
 
-# Initialize SmartConnect
-apikey = 'uqvuflLJ'
-username = 'B38590'
-pwd = '2302'
-token = 'EEHSUJJLWVFSZBRPEXVXKSFCLE'
+# Initialize SmartConnect using environment variables
+apikey = os.getenv('API_KEY')
+username = os.getenv('USERNAME')
+pwd = os.getenv('PWD')
+token = os.getenv('TOKEN')
 
 totp = pyotp.TOTP(token).now()
 obj = SmartConnect(api_key=apikey)

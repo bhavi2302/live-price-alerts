@@ -1,6 +1,4 @@
 import os
-import csv
-import pandas as pd
 from flask import Flask, render_template, jsonify
 import threading
 import time
@@ -38,20 +36,13 @@ data = obj.generateSession(username, pwd, totp)
 feedToken = obj.getfeedToken()
 jwtToken = data['data']['jwtToken']
 
-# Read tokens and symbols from CSV
-tokens = []
-symbol_map = {}
-
-with open('stocks.csv', newline='') as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        tokens.append(row['token'])
-        symbol_map[row['token']] = row['symbol']
-
 # WebSocket setup
 mode = 3
+tokens = ['13061', '445', '11868', '23729', '1030']  # Example tokens
 token_list = [{"exchangeType": 1, "tokens": tokens}]
 sws = SmartWebSocketV2(jwtToken, apikey, username, feedToken)
+
+some_threshold = 100  # Define your threshold value
 
 def on_data(wsapp, message):
     global live_data
@@ -62,7 +53,7 @@ def on_data(wsapp, message):
             token = str(message['token']).strip()
             ltp = message['last_traded_price'] / 100
             print(f"Received LTP: Token={token}, LTP={ltp}")
-            live_data[symbol_map[token]] = ltp
+            live_data[token] = ltp
             
             # Update historical data
             if token not in historical_data:
@@ -74,7 +65,7 @@ def on_data(wsapp, message):
                     historical_data[token]['low'] = ltp
 
             # Check criteria and trigger alerts
-            if ltp > some_threshold:  # Replace with actual criteria
+            if ltp > some_threshold:
                 alert_message = f"Alert: Token {token} LTP {ltp} exceeds threshold"
                 alerts.append(alert_message)
                 send_telegram_alert(alert_message)
@@ -132,6 +123,7 @@ def get_alerts():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 

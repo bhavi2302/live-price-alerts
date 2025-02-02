@@ -3,6 +3,7 @@ import csv
 import pandas as pd
 import pyotp
 import time
+import json  # Add this import statement
 from SmartApi import SmartConnect
 from SmartApi.smartWebSocketV2 import SmartWebSocketV2
 
@@ -86,3 +87,4 @@ connect_websocket()
 # Keep the script running
 while True:
     time.sleep(1)
+

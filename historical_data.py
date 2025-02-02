@@ -1,3 +1,4 @@
+import os
 import requests
 import pandas as pd
 import pyotp
@@ -5,11 +6,11 @@ import time
 from SmartApi.smartConnect import SmartConnect
 from datetime import datetime
 
-# Define API credentials
-api_key = 'uqvuflLJ'
-username = 'B38590'
-pwd = '2302'
-token = 'EEHSUJJLWVFSZBRPEXVXKSFCLE'
+# Initialize SmartConnect using environment variables
+api_key = os.getenv('API_KEY')
+username = os.getenv('USERNAME')
+pwd = os.getenv('PWD')
+token = os.getenv('TOKEN')
 
 # Create object of call
 obj = SmartConnect(api_key=api_key)
@@ -37,9 +38,9 @@ print("Session data:", data)
 auth_token = data['data']['jwtToken']
 print("Auth token:", auth_token)
 
-# Read the list of tokens from an Excel file
-excel_path_input = r"C:\Users\bhave\Documents\Astrotrade108\stocks.xlsx"
-tokens_df = pd.read_excel(excel_path_input)
+# Read the list of tokens from a CSV file
+csv_path_input = 'stocks.csv'
+tokens_df = pd.read_csv(csv_path_input)
 tokens = tokens_df['token'].astype(str).tolist()  # Read from 'token' column
 
 # Define the date range
@@ -102,7 +103,7 @@ for i in range(0, len(tokens), batch_size):
     print(f"Batch {i // batch_size + 1} processed. Waiting for {delay_seconds} seconds before next batch.")
     time.sleep(delay_seconds)
 
-# Save the results to Excel
-excel_path_output = r"C:\Users\bhave\Documents\Astrotrade108\Stock_historical_data.xlsx"
-results_df.to_excel(excel_path_output, index=False)
-print(f"Data saved to {excel_path_output}")
+# Save the results to CSV
+csv_path_output = 'Stock_historical_data.csv'
+results_df.to_csv(csv_path_output, index=False)
+print(f"Data saved to {csv_path_output}")

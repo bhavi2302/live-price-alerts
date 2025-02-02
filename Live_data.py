@@ -1,31 +1,16 @@
 import os
-import json
-import time
+import csv
 import pandas as pd
 import pyotp
-import gspread
+import time
 from SmartApi import SmartConnect
 from SmartApi.smartWebSocketV2 import SmartWebSocketV2
-from oauth2client.service_account import ServiceAccountCredentials
 
-# Function to get Google Sheet
-def get_google_sheet():
-    json_file_path = 'dotted-vortex-449412-b6-6721cd2b915a.json'  # Replace with your JSON file
-    with open(json_file_path) as f:
-        creds_dict = json.load(f)
-
-    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    credentials = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-    gc = gspread.authorize(credentials)
-    sh = gc.open('stocks')
-    worksheet = sh.worksheet('Resistance')
-    return worksheet
-
-# Initialize SmartConnect
-apikey = 'uqvuflLJ'
-username = 'B38590'
-pwd = '2302'
-token = 'EEHSUJJLWVFSZBRPEXVXKSFCLE'
+# Initialize SmartConnect using environment variables
+apikey = os.getenv('API_KEY')
+username = os.getenv('USERNAME')
+pwd = os.getenv('PWD')
+token = os.getenv('TOKEN')
 
 totp = pyotp.TOTP(token).now()
 obj = SmartConnect(api_key=apikey)
@@ -33,52 +18,51 @@ data = obj.generateSession(username, pwd, totp)
 feedToken = obj.getfeedToken()
 jwtToken = data['data']['jwtToken']
 
-# Google Sheets setup
-worksheet = get_google_sheet()
-df = pd.DataFrame(worksheet.get_all_records())
+# Read tokens and symbols from CSV
+tokens = []
+symbol_map = {}
 
-# Debug: Print DataFrame structure and sample tokens
-print("DataFrame Columns:", df.columns.tolist())
-print("Sample Tokens:", df['token'].head().tolist())
+with open('stocks.csv', newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        tokens.append(row['token'])
+        symbol_map[row['token']] = row['symbol']
 
 # WebSocket setup
-correlation_id = "subscription_id"
 mode = 3
-tokens = df['token'].astype(str).tolist()
 token_list = [{"exchangeType": 1, "tokens": tokens}]
 sws = SmartWebSocketV2(jwtToken, apikey, username, feedToken)
 
-def on_data(wsapp, msg):
-    try:
-        if isinstance(msg, str):
-            msg = json.loads(msg)
-        if 'token' in msg and 'last_traded_price' in msg:
-            token = str(msg['token']).strip()  # Ensure no whitespace
-            ltp = msg['last_traded_price'] / 100  # Adjust decimal
-            print(f"Received LTP: Token={token}, LTP={ltp}")
+live_data = {}
 
-            # Find row index in DataFrame
-            row_index = df.index[df['token'].astype(str) == token].tolist()
-            if row_index:
-                google_sheet_row = row_index[0] + 2  # Google Sheets rows start at 1, header is row 1
-                worksheet.update_cell(google_sheet_row, 3, ltp)
-                print(f"Updated Google Sheet Row {google_sheet_row} with LTP={ltp}")
-            else:
-                print(f"Token {token} not found in DataFrame")
+def on_data(wsapp, message):
+    try:
+        if isinstance(message, str):
+            message = json.loads(message)
+        if 'token' in message and 'last_traded_price' in message:
+            token = str(message['token']).strip()
+            ltp = message['last_traded_price'] / 100
+            print(f"Received LTP: Token={token}, LTP={ltp}")
+            live_data[symbol_map[token]] = ltp
+
+            # Optionally: Save live_data to CSV or database if required.
+            
+            # Debug: Print the live data
+            print(f"Live Data: {live_data}")
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error in on_data: {e}")
 
 def on_open(wsapp):
-    sws.subscribe(correlation_id, mode, token_list)
+    sws.subscribe(mode, token_list)
     print("Subscribed to tokens")
 
 def on_error(wsapp, error):
-    print(f"Error: {error}")
+    print(f"WebSocket Error: {error}")
     time.sleep(5)
     connect_websocket()
 
 def on_close(wsapp):
-    print("Connection closed")
+    print("WebSocket connection closed")
     time.sleep(5)
     connect_websocket()
 

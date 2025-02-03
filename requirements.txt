@@ -32,5 +32,6 @@ gspread==5.4.0
 oauth2client==4.1.3
 numpy==1.21.4
 logzero
-Flask==2.0.2
+Flask==2.2.2
+Werkzeug==2.2.2
 pandas==1.3.3

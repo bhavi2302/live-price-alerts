@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from flask import Flask, render_template, jsonify
 import threading
 import time
@@ -19,6 +20,13 @@ alerts = []
 bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
 chat_id = os.getenv('TELEGRAM_CHAT_ID')
 bot = telegram.Bot(token=bot_token)
+
+@app.route('/')
+def home():
+    return "Hello, World!"
+
+if __name__ == "__main__":
+    app.run(debug=True)
 
 # Function to send Telegram alert
 def send_telegram_alert(message):

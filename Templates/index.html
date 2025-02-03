@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live and Historical Prices</title>
+    <style>
+        /* Add your styles here */
+    </style>
+</head>
+<body>
+    <h1>Live Prices</h1>
+    <div id="live-data"></div>
+    
+    <h1>Historical Data (High and Low)</h1>
+    <div id="historical-data"></div>
+    
+    <h1>Alerts</h1>
+    <div id="alerts"></div>
+
+    <script>
+        function fetchLiveData() {
+            fetch('/live_data')
+                .then(response => response.json())
+                .then(data => {
+                    let liveDataDiv = document.getElementById('live-data');
+                    liveDataDiv.innerHTML = JSON.stringify(data, null, 2);
+                });
+        }
+
+        function fetchHistoricalData() {
+            fetch('/historical_data')
+                .then(response => response.json())
+                .then(data => {
+                    let historicalDataDiv = document.getElementById('historical-data');
+                    historicalDataDiv.innerHTML = JSON.stringify(data, null, 2);
+                });
+        }
+
+        function fetchAlerts() {
+            fetch('/alerts')
+                .then(response => response.json())
+                .then(data => {
+                    let alertsDiv = document.getElementById('alerts');
+                    alertsDiv.innerHTML = JSON.stringify(data, null, 2);
+                });
+        }
+
+        setInterval(fetchLiveData, 1000);  // Fetch live data every second
+        setInterval(fetchHistoricalData, 60000);  // Fetch historical data every minute
+        setInterval(fetchAlerts, 1000);  // Fetch alerts every second
+    </script>
+</body>
+</html>
